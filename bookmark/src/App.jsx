@@ -1,10 +1,19 @@
-import { useState } from 'react'
+
+import { useState, useEffect } from 'react'
 import './App.css'
 import {nanoid} from "nanoid"
 
 function App() {
   const [string, setString] = useState("")
+  const [filterString, setFilterString] = useState("")
   const [bookmarks, setBookmarks] = useState([])
+  const [filteredBookmarks, setFilterBookmarks] = useState([])
+
+  useEffect(() => {
+    setFilterBookmarks(
+      bookmarks.filter((el) => el.name.includes(filterString)))
+  }, [filterString, bookmarks])
+
   const categories = {
     movies: "фильмы",
     music: "музыка",
@@ -30,7 +39,14 @@ function App() {
   const handleCatChange = (e) => {
     setCategory(e.target.value)
   }
+
+  const handleToggle = (id) => {
+    setBookmarks((old) => old.map((el) => (el.id == id ? { ...el, ready: !el.ready } : el)))
+  }
   
+  const handleDelete = (id) => {
+    setBookmarks((old) => old.filter((el) => el.id != id))
+  }
   return (
 <div className="bookmarks">
   <div className="input">
@@ -42,14 +58,19 @@ function App() {
     </select>
     <button onClick={handleAdd}>Add bookmark</button>
   </div>
+  <div className='bookmark_filter'>
+    <span>поиск</span>
+    <input type="text" value={filterString} onChange={((el) => setFilterString(el.target.value))}/>
+  </div>
 <div className="bookmarks-list">
-  {bookmarks.map((el) => (
+  {filteredBookmarks.map((el) => (
     <div className="bookmark">
-      <input className='bookmark_ready' type="checkbox" />
+      <input className='bookmark_ready' type="checkbox" checked={el.ready} onChange={() => handleToggle(el.id)}/>
       
       <span className='bookmark_name'>{el.name}</span>
       <span className='bookmark_cat'>{categories[el.category]}</span>
       <span className='bookmark_date'>{el.date.toISOString()}</span>
+      <button className='bookmark_delete' onClick={() => handleDelete(el.id)}>x</button>
     </div>
   ))}
 </div>
